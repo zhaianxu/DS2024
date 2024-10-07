@@ -1,0 +1,183 @@
+#include <iostream>
+#include <vector>
+#include <complex>
+#include <algorithm>
+#include <ctime>
+#include <cstdlib>
+#include <cmath>
+
+class Complex {
+public:
+    double real;
+    double imag;
+
+    Complex(double r = 0, double i = 0) : real(r), imag(i) {}
+
+    double modulus() const {
+        return std::sqrt(real * real + imag * imag);
+    }
+
+    bool operator==(const Complex& other) const {
+        return real == other.real && imag == other.imag;
+    }
+
+    bool operator<(const Complex& other) const {
+        if (modulus() == other.modulus()) {
+            return real < other.real;
+        }
+        return modulus() < other.modulus();
+    }
+
+    bool operator>(const Complex& other) const {
+        if (modulus() == other.modulus()) {
+            return real > other.real;
+        }
+        return modulus() > other.modulus();
+    }
+
+    friend std::ostream& operator<<(std::ostream& os, const Complex& c) {
+        os << "(" << c.real << ", " << c.imag << ")";
+        return os;
+    }
+};
+
+std::vector<Complex> generateRandomComplexVector(int size) {
+    std::vector<Complex> vec;
+    for (int i = 0; i < size; ++i) {
+        vec.emplace_back(rand() % 10 - 5, rand() % 10 - 5);
+    }
+    return vec;
+}
+
+void shuffleVector(std::vector<Complex>& vec) {
+    std::random_shuffle(vec.begin(), vec.end());
+}
+
+int findComplex(const std::vector<Complex>& vec, const Complex& c) {
+    auto it = std::find(vec.begin(), vec.end(), c);
+    return (it != vec.end()) ? std::distance(vec.begin(), it) : -1;
+}
+
+void insertComplex(std::vector<Complex>& vec, const Complex& c) {
+    vec.push_back(c);
+}
+
+bool removeComplex(std::vector<Complex>& vec, const Complex& c) {
+    auto it = std::remove(vec.begin(), vec.end(), c);
+    if (it != vec.end()) {
+        vec.erase(it, vec.end());
+        return true;
+    }
+    return false;
+}
+
+void uniquifyVector(std::vector<Complex>& vec) {
+    std::sort(vec.begin(), vec.end());
+    vec.erase(std::unique(vec.begin(), vec.end()), vec.end());
+}
+
+void bubbleSort(std::vector<Complex>& vec) {
+    bool swapped;
+    for (size_t i = 0; i < vec.size() - 1; ++i) {
+        swapped = false;
+        for (size_t j = 0; j < vec.size() - i - 1; ++j) {
+            if (vec[j] > vec[j + 1]) {
+                std::swap(vec[j], vec[j + 1]);
+                swapped = true;
+            }
+        }
+        if (!swapped) break;
+    }
+}
+
+void merge(std::vector<Complex>& vec, int left, int mid, int right) {
+    int leftSize = mid - left;
+    int rightSize = right - mid;
+    std::vector<Complex> leftVec(vec.begin() + left, vec.begin() + mid);
+    std::vector<Complex> rightVec(vec.begin() + mid, vec.begin() + right);
+
+    int i = 0, j = 0, k = left;
+    while (i < leftSize && j < rightSize) {
+        if (leftVec[i] < rightVec[j]) {
+            vec[k++] = leftVec[i++];
+        } else {
+            vec[k++] = rightVec[j++];
+        }
+    }
+    while (i < leftSize) vec[k++] = leftVec[i++];
+    while (j < rightSize) vec[k++] = rightVec[j++];
+}
+
+void mergeSort(std::vector<Complex>& vec, int left, int right) {
+    if (right - left > 1) {
+        int mid = left + (right - left) / 2;
+        mergeSort(vec, left, mid);
+        mergeSort(vec, mid, right);
+        merge(vec, left, mid, right);
+    }
+}
+
+std::vector<Complex> rangeSearch(const std::vector<Complex>& vec, double m1, double m2) {
+    std::vector<Complex> result;
+    for (const auto& c : vec) {
+        double mod = c.modulus();
+        if (mod >= m1 && mod < m2) {
+            result.push_back(c);
+        }
+    }
+    return result;
+}
+
+int main() {
+    srand(static_cast<unsigned>(time(0)));
+    
+    std::vector<Complex> vec = generateRandomComplexVector(20);
+    std::cout << "Original vector: ";
+    for (const auto& c : vec) std::cout << c << " ";
+    std::cout << "\n";
+    shuffleVector(vec);
+    std::cout << "Shuffled vector: ";
+    for (const auto& c : vec) std::cout << c << " ";
+    std::cout << "\n";
+
+    Complex toFind(2, 3);
+    int index = findComplex(vec, toFind);
+    std::cout << "Index of " << toFind << ": " << index << "\n";
+
+    Complex toInsert(1, 1);
+    insertComplex(vec, toInsert);
+    std::cout << "After insertion: ";
+    for (const auto& c : vec) std::cout << c << " ";
+    std::cout << "\n";
+
+    if (removeComplex(vec, toFind)) {
+        std::cout << "After deletion of " << toFind << ": ";
+    }
+    for (const auto& c : vec) std::cout << c << " ";
+    std::cout << "\n";
+
+    uniquifyVector(vec);
+    std::cout << "After uniquification: ";
+    for (const auto& c : vec) std::cout << c << " ";
+    std::cout << "\n";
+
+    std::vector<Complex> vecBubble = vec;
+    std::vector<Complex> vecMerge = vec; 
+
+    clock_t start = clock();
+    bubbleSort(vecBubble);
+    clock_t end = clock();
+    std::cout << "Bubble sort time: " << static_cast<double>(end - start) / CLOCKS_PER_SEC << " seconds\n";
+
+    start = clock();
+    mergeSort(vecMerge, 0, vecMerge.size());
+    end = clock();
+    std::cout << "Merge sort time: " << static_cast<double>(end - start) / CLOCKS_PER_SEC << " seconds\n";
+
+    double m1 = 2.0, m2 = 5.0;
+    std::vector<Complex> rangeResults = rangeSearch(vec, m1, m2);
+    std::cout << "Elements with modulus in range [" << m1 << ", " << m2 << "): ";
+    for (const auto& c : rangeResults) std::cout << c << " ";
+    std::cout << "\n";
+    return 0;
+}
