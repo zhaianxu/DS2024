@@ -2,9 +2,9 @@
 #include <vector>
 #include <complex>
 #include <algorithm>
-#include <ctime>
 #include <cstdlib>
 #include <cmath>
+#include <chrono>
 
 class Complex {
 public:
@@ -132,21 +132,21 @@ int main() {
     srand(static_cast<unsigned>(time(0)));
     
     std::vector<Complex> vec = generateRandomComplexVector(20);
-    std::cout << "Original vector: ";
+    std::cout << "原始向量: ";
     for (const auto& c : vec) std::cout << c << " ";
     std::cout << "\n";
     shuffleVector(vec);
-    std::cout << "Shuffled vector: ";
+    std::cout << "置乱后向量: ";
     for (const auto& c : vec) std::cout << c << " ";
     std::cout << "\n";
 
     Complex toFind(2, 3);
     int index = findComplex(vec, toFind);
-    std::cout << "Index of " << toFind << ": " << index << "\n";
+    std::cout << "查找" << toFind << ": " << index << "\n";
 
     Complex toInsert(1, 1);
     insertComplex(vec, toInsert);
-    std::cout << "After insertion: ";
+    std::cout << "插入后向量: ";
     for (const auto& c : vec) std::cout << c << " ";
     std::cout << "\n";
 
@@ -157,27 +157,32 @@ int main() {
     std::cout << "\n";
 
     uniquifyVector(vec);
-    std::cout << "After uniquification: ";
+    std::cout << "去重后向量: ";
     for (const auto& c : vec) std::cout << c << " ";
     std::cout << "\n";
 
     std::vector<Complex> vecBubble = vec;
     std::vector<Complex> vecMerge = vec; 
 
-    clock_t start = clock();
+    // 使用高精度计时器
+    auto start = std::chrono::high_resolution_clock::now();
     bubbleSort(vecBubble);
-    clock_t end = clock();
-    std::cout << "Bubble sort time: " << static_cast<double>(end - start) / CLOCKS_PER_SEC << " seconds\n";
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> bubbleSortDuration = end - start;
+    std::cout << "冒泡排序时间: " << bubbleSortDuration.count() << " seconds\n";
 
-    start = clock();
+    start = std::chrono::high_resolution_clock::now();
     mergeSort(vecMerge, 0, vecMerge.size());
-    end = clock();
-    std::cout << "Merge sort time: " << static_cast<double>(end - start) / CLOCKS_PER_SEC << " seconds\n";
+    end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> mergeSortDuration = end - start;
+    std::cout << "归并排序时间: " << mergeSortDuration.count() << " seconds\n";
 
+    // 区间查找
     double m1 = 2.0, m2 = 5.0;
     std::vector<Complex> rangeResults = rangeSearch(vec, m1, m2);
-    std::cout << "Elements with modulus in range [" << m1 << ", " << m2 << "): ";
+    std::cout << "元素的模介于 [" << m1 << ", " << m2 << "): ";
     for (const auto& c : rangeResults) std::cout << c << " ";
     std::cout << "\n";
+
     return 0;
 }
