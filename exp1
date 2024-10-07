@@ -164,7 +164,6 @@ int main() {
     std::vector<Complex> vecBubble = vec;
     std::vector<Complex> vecMerge = vec; 
 
-    // 使用高精度计时器
     auto start = std::chrono::high_resolution_clock::now();
     bubbleSort(vecBubble);
     auto end = std::chrono::high_resolution_clock::now();
@@ -177,7 +176,6 @@ int main() {
     std::chrono::duration<double> mergeSortDuration = end - start;
     std::cout << "归并排序时间: " << mergeSortDuration.count() << " seconds\n";
 
-    // 区间查找
     double m1 = 2.0, m2 = 5.0;
     std::vector<Complex> rangeResults = rangeSearch(vec, m1, m2);
     std::cout << "元素的模介于 [" << m1 << ", " << m2 << "): ";
