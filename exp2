@@ -1,0 +1,325 @@
+#include<iostream>
+#include<vector>
+#include<cmath>
+#include <cstdlib>
+using namespace std;
+
+template<typename T>
+class stack
+{
+public:
+	stack(int size);
+	~stack();
+	bool empty() {return top==-1;}
+	bool full() {return top==maxtop;}
+	T Top();
+	T pop();
+	void push(const T x);
+	void display();
+private:
+	int maxtop;
+	int top;
+	T *values;
+};
+
+template<typename T>
+stack<T>::stack(int size)
+{
+	maxtop=size-1;
+	values=new T[size];
+	top=-1;
+}
+
+template<typename T>
+stack<T>:: ~stack()
+{
+	delete[] values;
+}
+
+template<typename T>
+void stack<T>::push(const T x)
+{
+	if(full())
+	{
+		cout<<"full"<<endl;
+	}
+	else
+		values[++top]=x;
+}
+template<typename T>
+T stack<T>::pop()
+{
+	if(empty())
+	{
+		cout<<"error"<<endl;
+		return T();
+	}
+	else
+	{
+		return values[top--];
+	}
+}
+
+template<typename T>
+T stack<T>::Top()
+{
+	if(empty())
+	{
+		cout<<"error"<<endl;
+		return T();
+	}
+	else
+	{
+		return values[top];
+	}
+}
+
+template<typename T>
+void stack<T>::display()
+{
+	for(int i=top;i>=0;i--)
+	{
+		cout<<values[i]<<endl;
+	}
+}
+
+const char pri[9][9] =
+{
+	{'>', '>', '<', '<', '<', '<', '<', '>', '>'},
+	{'>', '>', '<', '<', '<', '<', '<', '>', '>'},
+	{'>', '>', '>', '>', '<', '<', '<', '>', '>'},
+	{'>', '>', '>', '>', '<', '<', '<', '>', '>'},
+	{'>', '>', '>', '>', '>', '<', '<', '>', '>'},
+	{'>', '>', '>', '>', '>', '>', ' ', '>', '>'},
+	{'<', '<', '<', '<', '<', '<', '<', '=', ' '},
+	{' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+	{'<', '<', '<', '<', '<', '<', '<', ' ', '='}
+};
+
+int optrIndex(char op) 
+{
+	switch (op) {
+	case '+': return 0;
+	case '-': return 1;
+	case '*': return 2;
+	case '/': return 3;
+	case '^': return 4;
+	case '!': return 5;
+	case '(': return 6;
+	case ')': return 7;
+	case '\0': return 8;
+	default: return -1;
+	}
+}
+
+char priority(char topop,char currentop)
+{
+	int i=optrIndex(topop);
+	int j=optrIndex(currentop);
+	if(i==-1||j==-1)
+	{
+		cout<<"error"<<endl;
+		return -1;
+	}
+	else
+	{
+		return pri[i][j];
+	}
+}
+
+double factorial(int n)
+{
+	if (n < 0)
+	{
+		cout << "Error" << endl;
+		exit(-1);
+	}
+	double result = 1;
+	for (int i = 1; i <= n; ++i)
+	{
+		result *= i;
+	}
+	return result;
+}
+
+double calcu(double operand1, char op, double operand2 = 0)
+{
+	switch (op)
+	{
+	case '+':
+		return operand1 + operand2;
+	case '-':
+		return operand1 - operand2;
+	case '*':
+		return operand1 * operand2;
+	case '/':
+		if (operand2 == 0)
+		{
+			cout << "Error" << endl;
+			exit(-1);
+		}
+		return operand1 / operand2;
+	case '^':
+		return pow(operand1, operand2);
+	default:
+		cout << "Error" << endl;
+		exit(-1);
+	}
+}
+
+double calcu(char op, double operand)
+{
+	switch (op)
+	{
+	case '!':
+		if (operand < 0 || operand != floor(operand))
+		{
+			cout << "Error" << endl;
+			exit(-1);
+		}
+		return factorial(static_cast<int>(operand));
+	default:
+		cout << "Error" << endl;
+		exit(-1);
+	}
+}
+
+double evaluate(const char*s)
+{
+	stack<double> opnd(100);
+	stack<char> optr(100);
+	optr.push('\0');
+	while(!optr.empty())
+	{
+		if (isdigit(*s) || (*s == '.'))  // 检查数字或小数点
+	{	
+		double num = 0.0;
+		double decimalPlace = 1.0;
+		bool isDecimal = false;
+
+		while (isdigit(*s))  // 处理整数部分
+		{
+			num = num * 10 + (*s - '0');
+			s++;
+		}
+
+		if (*s == '.')  // 检查小数点
+		{
+			isDecimal = true;
+			s++;  // 跳过小数点
+		}
+
+		while (isdigit(*s))  // 处理小数部分
+		{
+			num = num * 10 + (*s - '0');
+			decimalPlace *= 10;  // 小数位数增加
+			s++;
+		}
+
+		if (isDecimal) 
+		{
+			num /= decimalPlace;  // 将整数部分与小数部分结合
+		}
+
+		opnd.push(num);
+	}
+			
+		else
+		{
+			switch(priority(optr.Top(),*s))
+			{
+				case '<':
+					optr.push(*s);
+					s++;
+					break;
+				
+				case '>':
+				{
+					char op=optr.pop();
+					if('!'==op)
+					{
+						opnd.push(calcu(op,opnd.pop()));
+					}
+					else
+					{	
+						double opnd2=opnd.pop();
+						double opnd1=opnd.pop();
+						opnd.push(calcu(opnd1,op,opnd2));
+					}
+					break;
+				}
+				case '=':
+				{
+					optr.pop();
+					s++;       									
+					break;
+				}
+			}
+		}
+		
+	}
+	return opnd.pop();
+}
+
+int largestaArea(const vector<int>& heights) 
+{
+    stack<int> s(100);
+    int maxArea = 0;
+    int n = heights.size();
+
+    for (int i = 0; i < n; i++) 
+    {
+        while (!s.empty() && heights[i] < heights[s.Top()]) 
+        {
+            int h = heights[s.Top()];
+            s.pop();
+            int width = s.empty() ? i : i - s.Top() - 1;
+            maxArea = max(maxArea, h * width);
+        }
+        s.push(i);
+    }
+
+    while (!s.empty()) 
+    {
+        int h = heights[s.Top()];
+        s.pop();
+        int width = s.empty() ? n : n - s.Top() - 1;
+        maxArea = max(maxArea, h * width);
+    }
+
+    return maxArea;
+}
+
+std::vector<int> RandomArray(int size, int maxValue) {
+    std::vector<int> arr(size);
+    for (int i = 0; i < size; ++i) {
+        arr[i] = rand() % (maxValue + 1); // 生成 0 到 maxValue 之间的随机数
+    }
+    return arr;
+}
+
+void printArray(const vector<int>& arr) {
+    for (int num : arr) {
+        cout << num << " ";
+    }
+    cout << endl;
+}
+
+int main()
+{
+    srand(static_cast<unsigned int>(time(0))); 
+    int arraySize = 10;
+    int maxValue = 104; 
+    int arrayNumber = 10; 
+    const char* s = "2*(3+2.2)^2+5!"; 
+    cout << evaluate(s) << endl; // 假设 evaluate 函数已定义
+
+    for (int i = 0; i < arrayNumber; ++i) {
+        vector<int> heights = RandomArray(arraySize, maxValue);
+        cout << "heights = ";
+        printArray(heights);
+        
+        cout << "最大面积： " << largestArea(heights) << endl;
+    }
+    return 0;
+}
