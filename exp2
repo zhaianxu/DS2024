@@ -191,34 +191,34 @@ double evaluate(const char*s)
 	optr.push('\0');
 	while(!optr.empty())
 	{
-		if (isdigit(*s) || (*s == '.'))  // 检查数字或小数点
+		if (isdigit(*s) || (*s == '.'))
 	{	
 		double num = 0.0;
 		double decimalPlace = 1.0;
 		bool isDecimal = false;
 
-		while (isdigit(*s))  // 处理整数部分
+		while (isdigit(*s))
 		{
 			num = num * 10 + (*s - '0');
 			s++;
 		}
 
-		if (*s == '.')  // 检查小数点
+		if (*s == '.') 
 		{
 			isDecimal = true;
-			s++;  // 跳过小数点
+			s++; 
 		}
 
-		while (isdigit(*s))  // 处理小数部分
+		while (isdigit(*s)) 
 		{
 			num = num * 10 + (*s - '0');
-			decimalPlace *= 10;  // 小数位数增加
+			decimalPlace *= 10;
 			s++;
 		}
 
 		if (isDecimal) 
 		{
-			num /= decimalPlace;  // 将整数部分与小数部分结合
+			num /= decimalPlace; 
 		}
 
 		opnd.push(num);
@@ -261,7 +261,7 @@ double evaluate(const char*s)
 	return opnd.pop();
 }
 
-int largestaArea(const vector<int>& heights) 
+int largestArea(const vector<int>& heights) 
 {
     stack<int> s(100);
     int maxArea = 0;
@@ -293,7 +293,7 @@ int largestaArea(const vector<int>& heights)
 std::vector<int> RandomArray(int size, int maxValue) {
     std::vector<int> arr(size);
     for (int i = 0; i < size; ++i) {
-        arr[i] = rand() % (maxValue + 1); // 生成 0 到 maxValue 之间的随机数
+        arr[i] = rand() % (maxValue + 1);
     }
     return arr;
 }
@@ -312,7 +312,7 @@ int main()
     int maxValue = 104; 
     int arrayNumber = 10; 
     const char* s = "2*(3+2.2)^2+5!"; 
-    cout << evaluate(s) << endl; // 假设 evaluate 函数已定义
+    cout << evaluate(s) << endl;
 
     for (int i = 0; i < arrayNumber; ++i) {
         vector<int> heights = RandomArray(arraySize, maxValue);
