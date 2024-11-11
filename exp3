@@ -1,0 +1,205 @@
+#include <iostream>
+#include <queue>
+#include <unordered_map>
+#include <vector>
+#include <cstring>
+#include <string>
+#include <cctype>
+
+struct HuffNode {
+    char data;
+    int freq;
+    HuffNode* left;
+    HuffNode* right;
+
+    HuffNode(char data, int freq) : data(data), freq(freq), left(nullptr), right(nullptr) {}
+
+    bool operator>(const HuffNode& other) const {
+        return freq > other.freq;
+    }
+};
+
+class HuffTree {
+private:
+    HuffNode* root;
+
+    void deleteTree(HuffNode* node) {
+        if (node) {
+            deleteTree(node->left);
+            deleteTree(node->right);
+            delete node;
+        }
+    }
+    void generateCodes(HuffNode* node, const std::string& code, std::unordered_map<char, std::string>& codeTable) const {
+        if (!node) return;
+        if (!node->left && !node->right) {
+            codeTable[node->data] = code;
+        }
+        generateCodes(node->left, code + "0", codeTable);
+        generateCodes(node->right, code + "1", codeTable);
+    }
+
+public:
+    HuffTree() : root(nullptr) {}
+
+    ~HuffTree() {
+        deleteTree(root);
+    }
+
+    void buildHuffmanTree(const std::unordered_map<char, int>& freqTable) {
+        auto comp = [](HuffNode* a, HuffNode* b) { return *a > *b; };
+        std::priority_queue<HuffNode*, std::vector<HuffNode*>, decltype(comp)> pq(comp);
+
+        for (const auto& entry : freqTable) {
+            pq.push(new HuffNode(entry.first, entry.second));
+        }
+
+        while (pq.size() > 1) {
+            HuffNode* left = pq.top(); pq.pop();
+            HuffNode* right = pq.top(); pq.pop();
+
+            HuffNode* parent = new HuffNode('\0', left->freq + right->freq);
+            parent->left = left;
+            parent->right = right;
+
+            pq.push(parent);
+        }
+
+        root = pq.top();
+    }
+
+    std::unordered_map<char, std::string> getCodeTable() const {
+        std::unordered_map<char, std::string> codeTable;
+        generateCodes(root, "", codeTable);
+        return codeTable;
+    }
+};
+
+using Rank = int;
+
+class Bitmap {
+private:
+    unsigned char* M;
+    Rank N, _sz;
+
+protected:
+    void init(Rank n) {
+        M = new unsigned char[N = (n + 7) / 8];
+        memset(M, 0, N);
+        _sz = 0;
+    }
+
+public:
+    Bitmap(Rank n = 8) { init(n); }
+    ~Bitmap() { delete[] M; }
+
+    void set(Rank k) {
+        expand(k);
+        _sz++;
+        M[k >> 3] |= (0x80 >> (k & 0x07));
+    }
+
+    void clear(Rank k) {
+        expand(k);
+        _sz--;
+        M[k >> 3] &= ~(0x80 >> (k & 0x07));
+    }
+
+    bool test(Rank k) const {
+        if (k >= 8 * N) return false;
+        return M[k >> 3] & (0x80 >> (k & 0x07));
+    }
+
+    char* bits2string(Rank n) const {
+        if (n > 8 * N) return nullptr; 
+        char* s = new char[n + 1];
+        s[n] = '\0';
+        for (Rank i = 0; i < n; i++) s[i] = test(i) ? '1' : '0';
+        return s;
+    }
+
+    void expand(Rank k) {
+        if (k < 8 * N) return;
+        Rank oldN = N;
+        unsigned char* oldM = M;
+        init(2 * k);
+        memcpy(M, oldM, oldN);
+        delete[] oldM;
+    }
+};
+
+
+class HuffCode {
+private:
+    Bitmap bits;
+    Rank length;
+
+public:
+    HuffCode() : length(0) {}
+
+    void addBit(bool bit) {
+        if (bit) bits.set(length);
+        length++;
+    }
+
+    void removeLastBit() {
+        if (length > 0) {
+            bits.clear(length - 1);
+            length--;
+        }
+    }
+
+    std::string toString() const {
+        char* str = bits.bits2string(length);
+        std::string result(str);
+        delete[] str;
+        return result;
+    }
+};
+
+std::unordered_map<char, int> calculateFrequency(const std::string& text) {
+    std::unordered_map<char, int> freqTable;
+    for (char ch : text) {
+        if (std::isalpha(ch)) {
+            ch = std::tolower(ch);
+            freqTable[ch]++;
+        }
+    }
+    return freqTable;
+}
+
+std::string encodeWord(const std::string& word, const std::unordered_map<char, std::string>& codeTable) {
+    std::string encodedStr;
+    for (char ch : word) {
+        if (codeTable.find(ch) != codeTable.end()) {
+            encodedStr += codeTable.at(ch);
+        }
+    }
+    return encodedStr;
+}
+
+int main() {
+    std::string text = "I am happy to join with you today in what will go down in history as the greatest demonstration for freedom in the history of our nation.";
+
+    std::unordered_map<char, int> freqTable = calculateFrequency(text);
+
+    HuffTree huffTree;
+    huffTree.buildHuffmanTree(freqTable);
+
+    std::unordered_map<char, std::string> codeTable = huffTree.getCodeTable();
+
+    std::cout << "Huffman Codes:\n";
+    for (const auto& entry : codeTable) {
+        std::cout << entry.first << ": " << entry.second << std::endl;
+    }
+
+    std::string word = "dream";
+    std::string encodedWord = encodeWord(word, codeTable);
+    std::cout << "Encoded '" << word << "': " << encodedWord << std::endl;
+
+    std::string otherWord = "nation";
+    std::string encodedOtherWord = encodeWord(otherWord, codeTable);
+    std::cout << "Encoded '" << otherWord << "': " << encodedOtherWord << std::endl;
+
+    return 0;
+}
