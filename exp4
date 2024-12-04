@@ -13,20 +13,20 @@ typedef enum { UNDETERMINED, TREE, CROSS, FORWARD, BACKWARD } EType;
 
 class Graph {
 private:
-    int V;  
-    vector<vector<int>> adj; 
+    int V; 
+    vector<vector<int>> adj;  
     vector<VStatus> vertexStatus; 
 
 public:
     Graph(int V) {
         this->V = V;
-        adj.resize(V, vector<int>(V, 0));
-        vertexStatus.resize(V, UNDISCOVERED);
+        adj.resize(V, vector<int>(V, 0)); 
+        vertexStatus.resize(V, UNDISCOVERED); 
     }
 
     void addEdge(int u, int v, int weight = 1) {
         adj[u][v] = weight;
-        adj[v][u] = weight;  
+        adj[v][u] = weight; 
     }
 
     void printGraph() {
@@ -37,7 +37,6 @@ public:
             cout << endl;
         }
     }
-
 
     vector<vector<int>> getAdj() {
         return adj;
@@ -50,37 +49,58 @@ public:
     int getVertexCount() {
         return V;
     }
+    void reset()
+{
+    for (int i = 0; i < V; i++) {
+        vertexStatus[i]=UNDISCOVERED;                   
+            }
+}
 };
+
 
 char vertexToChar(int v) {
     return 'A' + v;
 }
 
-void DFS(Graph &g, int start) {
-    vector<VStatus> &status = g.getVertexStatus();
-    stack<int> s;
-    s.push(start);
 
+
+void DFS(Graph &g, int start) {
+    vector<VStatus> &status = g.getVertexStatus(); 
     cout << "DFS: ";
+
+    stack<int> s;
+    vector<int> list; 
+    s.push(start);
     status[start] = DISCOVERED;
 
     while (!s.empty()) {
         int node = s.top();
         s.pop();
-        if (status[node] == UNDISCOVERED) {
-            status[node] = VISITED;
-            cout << vertexToChar(node) << " ";
+
+
+        if (status[node] == DISCOVERED) {
+            list.push_back(node);
+            status[node] = VISITED; 
         }
+
 
         for (int i = 0; i < g.getAdj().size(); i++) {
             if (g.getAdj()[node][i] && status[i] == UNDISCOVERED) {
-                s.push(i);
-                status[i] = DISCOVERED; 
+                s.push(i); 
+                status[i] = DISCOVERED;
             }
         }
     }
+
+
+    for (auto v : list) {
+        cout << vertexToChar(v) << " ";
+    }
     cout << endl;
 }
+
+
+
 
 void BFS(Graph &g, int start) {
     vector<VStatus> &status = g.getVertexStatus();
@@ -104,6 +124,7 @@ void BFS(Graph &g, int start) {
     cout << endl;
 }
 
+
 void dijkstra(Graph &g, int start) {
     int V = g.getVertexCount();
     vector<int> dist(V, INT_MAX);
@@ -113,7 +134,8 @@ void dijkstra(Graph &g, int start) {
 
     priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq;
     pq.push({0, start});
-
+    
+    cout << "Dijkstra: "<<endl;
     while (!pq.empty()) {
         int u = pq.top().second;
         pq.pop();
@@ -165,7 +187,7 @@ void prim(Graph &g) {
         if (inMST[u]) continue;
         inMST[u] = true;
 
-        for (int v = 0; v < V; v++) {
+         (int v = 0; v < V; v++) {
             if (g.getAdj()[u][v] && !inMST[v] && g.getAdj()[u][v] < key[v]) {
                 key[v] = g.getAdj()[u][v];
                 parent[v] = u;
@@ -176,7 +198,7 @@ void prim(Graph &g) {
 
     cout << "最小生成树的边：" << endl;
     int totalWeight = 0;
-    for (int i = 1; i < V; i++) {
+     (int i = 1; i < V; i++) {
         if (parent[i] != -1) {
             cout << "从 " << vertexToChar(parent[i]) << " 到 " << vertexToChar(i) 
                  << " 权重 " << g.getAdj()[parent[i]][i] << endl;
@@ -187,6 +209,7 @@ void prim(Graph &g) {
 }
 
 int main() {
+
     Graph g(6);
     g.addEdge(0, 1, 2);
     g.addEdge(0, 4, 3);
@@ -196,13 +219,18 @@ int main() {
     g.addEdge(3, 4, 2);
     g.addEdge(4, 5, 6);
 
-    cout << "Graph adjacency matrix:" << endl;
+    cout << "邻接矩阵:" << endl;
     g.printGraph();
 
-    BFS(g, 0);
-    DFS(g, 0);
-    dijkstra(g, 0);
-    prim(g);
 
+    BFS(g, 0);
+    g.reset();
+    DFS(g, 0);
+
+   
+    dijkstra(g, 0);
+
+   
+    prim(g);
     return 0;
 }
